@@ -1,0 +1,23 @@
+[package]
+name = "windows-elevate"
+version = "0.1.0"
+edition = "2021"
+
+authors = ["NenX"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/NenX/windows-elevate"
+repository = "https://github.com/NenX/windows-elevate"
+
+keywords = ["windows", "sudo", "UAC", "elevate", "administrator"]
+
+[dependencies]
+windows-result = "0.2.0"
+windows = { version = "0.58.0", features = [
+    "Win32_System_Registry",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Threading",
+    "Win32_UI_Shell_Common",
+    "Win32_Foundation",
+    "Win32_Security",
+] }

@@ -2,7 +2,6 @@
 
 use std::env;
 use std::env::args;
-use std::ffi::OsStr;
 use std::fs;
 use std::mem::size_of;
 
@@ -16,17 +15,15 @@ use windows::Win32::System::Threading::{GetExitCodeProcess, WaitForSingleObject,
 use windows::Win32::UI::Shell::{ShellExecuteExW, SEE_MASK_NOCLOSEPROCESS, SHELLEXECUTEINFOW};
 use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 
-fn elevate_sh_exec(cmd: &OsStr, arguments: &OsStr) -> windows_result::Result<()> {
-    let s_exe = cmd.to_str().unwrap();
-
+fn elevate_sh_exec(cmd: &str, arguments: &str) -> windows_result::Result<()> {
     let cwd_path = env::current_dir().unwrap();
     let cwd = cwd_path.to_str().unwrap().to_string();
     let h_cwd = HSTRING::from(&cwd);
 
-    let mixed_args = format!("{} {}", arguments.to_str().unwrap(), "");
+    let mixed_args = format!("{} {}", arguments, "");
 
     let cmd_file = cwd_path.join("tmp.cmd");
-    let exe_file = cwd_path.join(s_exe);
+    let exe_file = cwd_path.join(cmd);
     let stdout_file = cwd_path.join("stdout_file");
     let stderr_file = cwd_path.join("stderr_file");
 
@@ -117,12 +114,8 @@ fn elevate_sh_exec(cmd: &OsStr, arguments: &OsStr) -> windows_result::Result<()>
 /// ```
 #[cfg(target_os = "windows")]
 pub fn elevate() -> windows_result::Result<()> {
-    let mut arguments = args();
-    let exe_name = arguments.next().unwrap().clone();
-    let exe_path = std::path::Path::new(&exe_name);
-    let file_name = exe_path.file_name().unwrap().to_str().unwrap();
-
-    let args_v: Vec<String> = arguments.collect();
+    let exe_path = std::env::current_exe().unwrap();
+    let args_v: Vec<String> = args().skip(1).collect();
 
     let ja = args_v
         .iter()
@@ -130,5 +123,5 @@ pub fn elevate() -> windows_result::Result<()> {
         .reduce(|a, b| a + " " + &b)
         .unwrap_or("".to_string());
 
-    elevate_sh_exec(file_name.as_ref(), ja.as_ref())
+    elevate_sh_exec(exe_path.to_str().unwrap(), ja.as_ref())
 }
